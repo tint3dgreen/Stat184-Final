@@ -46,19 +46,36 @@ WrangledCost
 ```
 Now that the table is limited to a few specific goods, it is easier to visualize the key differences between the cities. The next thing I want to do is to add a new column that will contain the average cost of that good across all cities.
 ```{r}
-#This function takes a dataframe(DataFrame) and a symbol(s) as parameters. It returns a copy of the DataFrame with each instance of s in the column names replaced with a space
-
 WrangledCost <- WrangledCost %>% mutate(Average = round(rowMeans(WrangledCost[,-1]),digits = 2))
 WrangledCost
 ```
-The final piece of data wrangling I would like to do to this dataset is to replace all those pesky periods with the proper spaces using regular expressions. I will be using my custom function ReplaceWithSpace to accomplish this
+The final piece of data wrangling I would like to do to this dataset is to replace all the periods in the column titles with using regular expressions. I will be using my custom function ReplaceWithSpace to accomplish this. After this step is completed I will consider this dataset glyph ready.
 ```{r}
+#This function takes a dataframe(DataFrame) and a symbol(s) as parameters. It returns a copy of the DataFrame with each instance of s in the column names replaced with a space. Note, Escape characters are required if s uses special characters
 ReplaceWithSpace <- function(DataFrame,s){
-  myRegex = paste("^\\",s,"$",sep="")
-  print(myRegex)
-  oldNames <- colnames(DataFrame)
-  fixedNames <- gsub(pattern = myRegex,replacement = " ",oldNames)
-  print(fixedNames)
+  tempFrame <- DataFrame
+  oldNames <- colnames(tempFrame)
+  fixedNames <- gsub(pattern = s,replacement = " ",oldNames)
+  colnames(tempFrame) <- fixedNames
+  return(tempFrame)
 }
-WrangledCost <- ReplaceWithSpace(WrangledCost,'..')
+WrangledCost <- ReplaceWithSpace(WrangledCost,"\\.")
+WrangledCost
+```
+
+## PayByDegree
+This dataset does not need as much wrangling done to it as CostOfLiving. That being said, There are a few dollar signs and commas that need to be removed before data wrangling can begin. I also would like to fix the titles using my ReplaceWithSpace function.
+```{r}
+#First replace all the periods with spaces
+WrangledPay <- ReplaceWithSpace(PayByDegree,"\\.")
+
+#Then remove the currency symbol from the data
+WrangledPay <- WrangledPay %>%
+                mutate(`Starting Median Salary` = gsub(pattern = '[$,]', replacement = '', `Starting Median Salary`),
+                       `Mid Career Median Salary` = gsub(pattern = '[$,]', replacement = '', `Mid Career Median Salary`),
+                       `Mid Career 10th Percentile Salary` = gsub(pattern = '[$,]', replacement = '', `Mid Career 10th Percentile Salary`),
+                       `Mid Career 25th Percentile Salary` = gsub(pattern = '[$,]', replacement = '', `Mid Career 25th Percentile Salary`),
+                       `Mid Career 75th Percentile Salary` = gsub(pattern = '[$,]', replacement = '', `Mid Career 75th Percentile Salary`),
+                       `Mid Career 90th Percentile Salary` = gsub(pattern = '[$,]', replacement = '', `Mid Career 90th Percentile Salary`))
+WrangledPay
 ```
