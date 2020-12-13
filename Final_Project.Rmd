@@ -1,0 +1,64 @@
+---
+title: "Final Project Report"
+author: "Colin Arscott"
+date: "12/13/2020"
+output: html_notebook
+---
+
+
+```{r, echo=FALSE}
+library(tidyverse)
+CostOfLiving <- read.csv("cost-of-living.csv")
+PayByDegree <- read.csv("degrees-that-pay-back.csv")
+```
+## Research Question
+The question I have decided to tackle is: Which city is the best to live in for a recent college graduate?
+To answer this, I found two datasets. One dataset has cost of living data for cities all around the world. The other dataset has salaries for different college degrees at certain points in their careers.
+<br> This is an important question to answer as my peers and I are all currently in school, it is important to look for post graduation employment in a location where we can have a high quality of life.
+
+## Data Wrangling
+
+The data did not come in a format that was usable for my purposes right off the bat. I needed to do significant data wrangling in order to make the data usable. 
+
+### CostOfLiving
+<br> The dataset called CostOfLiving has the following structure before data wrangling:
+```{r}
+CostOfLiving
+```
+This has a few problems that need to be sorted out. Firstly, there are way too many cities included here. I would like to narrow the scope to include only cities in the United States as Penn State students are most likely going to end up working and living somewhere in the United States after college. 
+<br><br> The first step will be to filter out all columns that are not located in America.
+```{r}
+WrangledCost <- CostOfLiving %>% select(X,contains("United.States")) %>% rename("TypeOfGood" = X)
+WrangledCost
+```
+During this step, I also renamed the first column from a generic "X" to a more descriptive "Type of Good". Now after this initial step, the data is already way easier to look at and compare between cities. The next step is to remove all the types of goods that I wont be focusing on. This dataset is very in depth and contains many goods, butr I will only be keeping the essentials.
+```{r}
+WrangledCost <- WrangledCost %>% filter(TypeOfGood == "Meal, Inexpensive Restaurant"|
+                                        TypeOfGood == "Meal for 2 People, Mid-range Restaurant, Three-course"|
+                                        TypeOfGood == "Milk (regular), (1 liter)"|
+                                        TypeOfGood == "Volkswagen Golf"|
+                                        TypeOfGood == "Apartment (1 bedroom) in City Centre"|
+                                        TypeOfGood == "Apartment (1 bedroom) Outside of Centre"|
+                                        TypeOfGood == "Utilities"|
+                                        TypeOfGood == "Internet"|
+                                        TypeOfGood == "Gasoline (1 liter)")
+WrangledCost
+```
+Now that the table is limited to a few specific goods, it is easier to visualize the key differences between the cities. The next thing I want to do is to add a new column that will contain the average cost of that good across all cities.
+```{r}
+#This function takes a dataframe(DataFrame) and a symbol(s) as parameters. It returns a copy of the DataFrame with each instance of s in the column names replaced with a space
+
+WrangledCost <- WrangledCost %>% mutate(Average = round(rowMeans(WrangledCost[,-1]),digits = 2))
+WrangledCost
+```
+The final piece of data wrangling I would like to do to this dataset is to replace all those pesky periods with the proper spaces using regular expressions. I will be using my custom function ReplaceWithSpace to accomplish this
+```{r}
+ReplaceWithSpace <- function(DataFrame,s){
+  myRegex = paste("^\\",s,"$",sep="")
+  print(myRegex)
+  oldNames <- colnames(DataFrame)
+  fixedNames <- gsub(pattern = myRegex,replacement = " ",oldNames)
+  print(fixedNames)
+}
+WrangledCost <- ReplaceWithSpace(WrangledCost,'..')
+```
