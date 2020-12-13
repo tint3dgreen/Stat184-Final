@@ -63,7 +63,7 @@ WrangledCost <- ReplaceWithSpace(WrangledCost,"\\.")
 WrangledCost
 ```
 
-## PayByDegree
+### PayByDegree
 This dataset does not need as much wrangling done to it as CostOfLiving. That being said, There are a few dollar signs and commas that need to be removed before data wrangling can begin. I also would like to fix the titles using my ReplaceWithSpace function.
 ```{r}
 #First replace all the periods with spaces
@@ -79,3 +79,29 @@ WrangledPay <- WrangledPay %>%
                        `Mid Career 90th Percentile Salary` = gsub(pattern = '[$,]', replacement = '', `Mid Career 90th Percentile Salary`))
 WrangledPay
 ```
+After removing all the unnecessary symbols, this dataset is looks like its in pretty good shape. The last bit of data wrangling I need to do is convert all the money values from strings to doubles. I need to do this because I cant do math operations on strings
+```{r}
+WrangledPay$`Starting Median Salary` <- as.double(WrangledPay$`Starting Median Salary`)
+WrangledPay$`Mid Career Median Salary` <- as.double(WrangledPay$`Mid Career Median Salary`)
+WrangledPay$`Mid Career 10th Percentile Salary` <- as.double(WrangledPay$`Mid Career 10th Percentile Salary`)
+WrangledPay$`Mid Career 25th Percentile Salary` <- as.double(WrangledPay$`Mid Career 25th Percentile Salary`)
+WrangledPay$`Mid Career 75th Percentile Salary` <- as.double(WrangledPay$`Mid Career 75th Percentile Salary`)
+WrangledPay$`Mid Career 90th Percentile Salary` <- as.double(WrangledPay$`Mid Career 90th Percentile Salary`)
+WrangledPay
+```
+Now all the values that should be doubles have been converted to doubles. The final bit of data wrangling I want to do on this data is calculate the Mean starting salary over all majors.
+```{r}
+count = 0
+total = 0
+#loop over each value in Starting Median Salary
+for (i in WrangledPay$`Starting Median Salary`){
+  total <- total + i #add this value to the total
+  count <- count + 1 #keep track of each item
+}
+allDegreeMean <- total/count #calculate mean
+print(allDegreeMean)
+```
+That is all the data wrangling that needed to be done, now on to Data Visualization.
+
+
+## Data Visualization
