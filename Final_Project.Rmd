@@ -11,10 +11,11 @@ library(tidyverse)
 CostOfLiving <- read.csv("cost-of-living.csv")
 PayByDegree <- read.csv("degrees-that-pay-back.csv")
 ```
-## Research Question
+## Research Question and Introduction
 The question I have decided to tackle is: Which city is the best to live in for a recent college graduate?
 To answer this, I found two datasets. One dataset has cost of living data for cities all around the world. The other dataset has salaries for different college degrees at certain points in their careers.
-<br> This is an important question to answer as my peers and I are all currently in school, it is important to look for post graduation employment in a location where we can have a high quality of life.
+<br> This is an important question to answer as my peers and I are all currently in school, it is important to look for post graduation employment in a location where we can have a high quality of life. There are many factors that go into deciding where is the best place for a person to live and these factors vary from person to person. I will take a generalized approach with the goal at finding which locations are better than others. I will tackle the categories of Rent cost and prepared food cost as those are the easiest to standardize.
+<br> The hardest problem I faced when conducting this research, was creating glyph ready data for the cost of living dataset. Since the rows and columns were switched from how I would like them, I had to find a way to make the switch. When I found out that the operation I needed was called a transpose, I still had difficulty implementing it. When I was finally able to get it transposed, some of the lables were missing. Learning how to add a column name to a row that had no name or way of addressing it was stressful. I eventually got it to work by using an obscure function from the dplyr library that was designed to solve that specific problem.
 
 ## Data Wrangling
 
@@ -49,7 +50,7 @@ Now that the table is limited to a few specific goods, it is easier to visualize
 WrangledCost <- WrangledCost %>% mutate(Average = round(rowMeans(WrangledCost[,-1]),digits = 2))
 WrangledCost
 ```
-The final piece of data wrangling I would like to do to this dataset is to replace all the periods in the column titles with using regular expressions. I will be using my custom function ReplaceWithSpace to accomplish this. After this step is completed I will consider this dataset glyph ready.
+The final piece of data wrangling I would like to do to this dataset is to replace all the periods in the column titles with using regular expressions. I will be using my custom function ReplaceWithSpace to accomplish this.
 ```{r}
 #This function takes a dataframe(DataFrame) and a symbol(s) as parameters. It returns a copy of the DataFrame with each instance of s in the column names replaced with a space. Note, Escape characters are required if s uses special characters
 ReplaceWithSpace <- function(DataFrame,s){
@@ -62,6 +63,14 @@ ReplaceWithSpace <- function(DataFrame,s){
 WrangledCost <- ReplaceWithSpace(WrangledCost,"\\.")
 WrangledCost
 ```
+In order to make this data Glyph ready, I need to transpose the graph so that the rows are switched with the columns
+```{r}
+transposeCost <- data.frame(t(WrangledCost[-1])) #Scrape all but the first row
+colnames(transposeCost) <- WrangledCost[,1]
+transposeCost <- tibble::rownames_to_column(transposeCost,"City") #Create a new column called City containing city names
+transposeCost
+```
+
 
 ### PayByDegree
 This dataset does not need as much wrangling done to it as CostOfLiving. That being said, There are a few dollar signs and commas that need to be removed before data wrangling can begin. I also would like to fix the titles using my ReplaceWithSpace function.
@@ -105,3 +114,29 @@ That is all the data wrangling that needed to be done, now on to Data Visualizat
 
 
 ## Data Visualization
+```{r}
+transposeCost %>% ggplot(aes(x = City))+ 
+      geom_bar(stat = "identity",aes(fill = City, y = `Apartment (1 bedroom) in City Centre`)) + 
+      geom_point(stat = "identity",aes(x = City, y = `Apartment (1 bedroom) Outside of Centre`  ,fill = City)) +
+      xlab("Inside City(Color) vs Outside City(Dot)") +
+      ylab("Rent in Dollars per Month") +
+      ggtitle("1 Bedroom Apartment Cost") +
+      geom_abline(slope = 0, intercept = allDegreeMean/24) +
+      theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+```
+In order to find out which city is the best city to live in post graduation, the most important factor is rent. It is generally recommended that rent should take up no more than half for your income. The horizontal line on the above graph is set to the value of half the average monthly income of college graduates. Any city that falls above the line takes up more than half of the average recent graduate's monthly income. The colored bar represents the price of an apartment inside the city center, while the black dot represents the price of an apartment outside of the city center. From this graph we can draw the conclusion that on a city by city basis it is always more economical to live outside of the city center when given the option. The city with the lowest rate for a city center apartment is Las Vegas NV. The overall lowest rent price is for an apartment outside the city center in Phoenix AZ.
+
+```{r}
+transposeCost %>% ggplot(aes(x = City)) + 
+                  geom_bar(stat = 'identity', aes(y = `Meal for 2 People, Mid-range Restaurant, Three-course`,fill = City))+ 
+                  geom_bar(aes(y  = `Meal, Inexpensive Restaurant`),stat = "identity") + 
+                  ylab("Price in $") +
+                  xlab("") +
+                  ggtitle("An Inexpensive Meal Compared to a Fancy Meal in Different Cities") +
+                  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+```
+The Graph above shows that there is not a significant difference in the price of inexpensive meals in different cities. The difference in fancy meal prices is more significant. It needs to be said that a fancy meal is defined as a three course meal for two. One aspect of this graph that surprised me was that there does not appear to be a correlation between apartment price and fancy meal price. Two of the least expensive cities for rent, Las Vegas and Phoenix, are both very close to average price when it comes to food. Another interesting aspect of this graph is that the variation city to city is not as large as with rent. From this I can conclude that the price of prepared meals should not be a major factor in deciding where to live as they are pretty similar in cities all over the country.
+
+
+## Conclusion 
+After looking at the data visualized by these graphs I was able to gain a greater understanding of the economic differences in cities across the United States. The differences in food prices were a lot lower than I expected. I also expected there to be more than one factor that would decide where the best place for a recent college graduate to live is. Despite my expectations, I was able to tell after looking at the data that apartment location relative to downtown, and by extension its monthly rent are the primary factors. When it comes to cities that new graduates should not choose to live in, 2 cities had monthly rent payments close to 50% of the average monthly income regardless of distance from the city center. These two cities are New York and San Francisco. Unless you are earning a salary well above the national average, these cities should be avoided. As for cities that have exceptionally low rent, two outperformed the rest. Phoenix had the overall lowest rent as long as you are able to live outside of the city center. But if you need to live downtown, Las Vegas has the least expensive apartments that are close to the city center. The remaining cities are all good options as they all have at least one option that is below the 50% monthly income threshold. 
