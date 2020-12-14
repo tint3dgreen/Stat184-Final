@@ -10,6 +10,8 @@ output: html_notebook
 library(tidyverse)
 CostOfLiving <- read.csv("cost-of-living.csv")
 PayByDegree <- read.csv("degrees-that-pay-back.csv")
+view(CostOfLiving)
+view(PayByDegree)
 ```
 ## Research Question and Introduction
 The question I have decided to tackle is: Which city is the best to live in for a recent college graduate?
@@ -32,7 +34,7 @@ This has a few problems that need to be sorted out. Firstly, there are way too m
 WrangledCost <- CostOfLiving %>% select(X,contains("United.States")) %>% rename("TypeOfGood" = X)
 WrangledCost
 ```
-During this step, I also renamed the first column from a generic "X" to a more descriptive "Type of Good". Now after this initial step, the data is already way easier to look at and compare between cities. The next step is to remove all the types of goods that I wont be focusing on. This dataset is very in depth and contains many goods, butr I will only be keeping the essentials.
+During this step, I also renamed the first column from a generic "X" to a more descriptive "Type of Good". Now after this initial step, the data is already way easier to look at and compare between cities. The next step is to remove all the types of goods that I wont be focusing on. This dataset is very in depth and contains many goods, but I will only be keeping the essentials.
 ```{r}
 WrangledCost <- WrangledCost %>% filter(TypeOfGood == "Meal, Inexpensive Restaurant"|
                                         TypeOfGood == "Meal for 2 People, Mid-range Restaurant, Three-course"|
